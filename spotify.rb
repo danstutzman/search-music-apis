@@ -26,6 +26,7 @@ ActiveRecord::Base.establish_connection({
 
 def set_cover_image_url! api_query
   response = JSON.parse(api_query.response_json)
+
   begin
     track = response['tracks']['items'][0]
   rescue NoMethodError
@@ -40,12 +41,15 @@ def set_cover_image_url! api_query
     p track
     raise
   end
+
   begin
-    image64 = album['images'].find { |image| image['width'] == 64 || image['height'] == 64 }
+    image64 = album['images'].find { |image| (image['width'] - 64).abs <= 1 || (image['height'] - 64).abs <= 1 }
   rescue NoMethodError
     p album
     raise
   end
+  return if image64.nil?
+
   api_query.cover_image_url = image64['url']
   api_query.save!
 end

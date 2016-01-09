@@ -67,11 +67,48 @@ def set_album_cover_path! api_query
   api_query.save!
 end
 
+def set_other_fields_from_json! api_query
+  response = JSON.parse(api_query.response_json)
+
+  begin
+    track = response['tracks']['items'][0]
+  rescue NoMethodError
+    p response
+    raise
+  end
+  return if track == nil
+
+  begin
+    album = track['album'] || track['albums']['items'][0]
+  rescue NoMethodError
+    p track
+    raise
+  end
+
+  begin
+    artist = track['artists'][0]
+  rescue NoMethodError
+    p track
+    raise
+  end
+
+  api_query.official_album_name = album['name']
+  api_query.official_artist_name = artist['name']
+  api_query.official_song_name = track['name']
+  api_query.duration_ms = track['duration_ms']
+
+  api_query.save!
+end
+
 ApiQuery.where(cover_image_url: nil).each do |api_query|
   set_cover_image_url! api_query
 end
 ApiQuery.where(album_cover_path: nil).each do |api_query|
   set_album_cover_path! api_query
+end
+ApiQuery.where('duration_ms is null or official_album_name is null or official_artist_name is null or official_song_name is null').each do |api_query|
+  set_other_fields_from_json! api_query
+  p api_query
 end
 
 while true

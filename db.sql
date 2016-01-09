@@ -8,6 +8,10 @@ CREATE TABLE api_queries (
   response_status_code INT NOT NULL,
   response_json TEXT NOT NULL,
   cover_image_url text,
-  cover_image_path text
+  cover_image_path text,
+  duration_ms int,
+  official_artist_name text,
+  official_album_name text,
+  official_song_name text
 );
 CREATE INDEX idx_api_queries_song_source_num ON api_queries(song_source_num);
